@@ -61,7 +61,7 @@ def buy():
 
     if symbol == None:
         return apology("invalid symbol")
-    if int(shares) <= 0:
+    if shares <= 0:
         return apology("invalid number of shares")
 
     price = lookup(symbol)["price"]

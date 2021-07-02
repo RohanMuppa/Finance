@@ -53,7 +53,24 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "GET":
+        return render_template("buy.html")
+
+    symbol = request.form.get("symbol")
+    shares = request.form.get("shares")
+
+    if symbol == None:
+        return apology("invalid symbol")
+    if int(shares) <= 0:
+        return apology("invalid number of shares")
+
+    price = lookup(symbol)["price"]
+
+    cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])
+    for num in range(10000):
+        print(cash)
+
+    return redirect("/")
 
 
 @app.route("/history")
@@ -72,14 +89,6 @@ def login():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-
-        # Ensure username was submitted
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
-
-        # Ensure password was submitted
-        elif not request.form.get("password"):
-            return apology("must provide password", 403)
 
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
@@ -113,35 +122,49 @@ def logout():
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
+
     """Get stock quote."""
-    return apology("TODO")
+    # User reached route via GET (as by clicking a link or via redirect)
+    if request.method == "GET":
+        return render_template("quote.html")
+
+    # User reached route via POST (as by submitting a form via POST)
+
+    # Looks up stock information
+    retrieve = lookup(request.form.get("symbol"))
+
+    # Send data to HTML page to show the stock information to the user
+    return render_template("quoted.html",name=retrieve["name"],symbol=retrieve["symbol"],price=retrieve["price"])
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
+
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+
+        # variables for form submisssions
         name = request.form.get("username")
-        password = request.form.get("password")
+        hash_pass = generate_password_hash(request.form.get("password"))
         confirmation = request.form.get("confirmation")
 
-        # Ensure username was submitted
-        if not name:
-            return apology("must provide username", 403)
-
-        # Ensure password was submitted
-        elif not password:
-            return apology("must provide password", 403)
-
-        # Ensure confirmation was submitted
-        elif not confirmation:
-            return apology("must provide password confirmation", 403)
-
-        elif password != confirmation:
+        # Checks if user submitted correct password both times
+        if not check_password_hash(hash_pass, confirmation):
             return apology("password must match password confirmation", 403)
 
-        db.execute("""INSERT INTO shows (Timestamp, title, genres) VALUES("now", "The Muppet Show", "Comedy, Musical");""")
+        # Trys to insert the new user data
+        try:
+            insert = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
+                              username=name, hash=hash_pass)
+        # If insert fails it outputs "username has already been taken"
+        except:
+            return apology("username has already been taken", 403)
 
+        # Redirect user to login page
+        return redirect("/login")
+
+    # User reached route via GET (as by clicking a link or via redirect)
     return render_template("register.html")
 
 

@@ -1,0 +1,14 @@
+RohanMuppa
+
+cd MyPages
+sqlite3 finance.db
+SELECT * FROM users;
+SELECT * FROM purchases;
+
+// Flask won't stay active once you refresh it so make sure to use the debugger while using Flask to combat this
+cd MyPages
+debug50 application.py
+
+cd MyPages
+export API_KEY=pk_b2e8b51646c54453bad2e43a6125ce21
+flask run

@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Log In
+{% endblock %}
+
+{% block main %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Symbol</th>
+            <th>Name</th>
+            <th>Shares</th>
+            <th>Price</th>
+            <th>TOTAL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for trade in holdings %}
+            <tr>
+                <td>{{ trade["symbol"].upper() }}</td>
+                <td>{{ trade["name"] }}</td>
+                <td>{{ trade["SUM(shares)"] }}</td>
+                <td>{{ trade["price"]| usd }}</td>
+                <td>{{ trade["SUM(total)"]| usd }}</td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td colspan="4">CASH</td>
+            <td>{{ cash | usd}}</td>
+        </tr>
+    </tbody>
+    <tfoot>
+        <!-- Write your comments here -->
+        <tr>
+            <td colspan="4"></td>
+            <td><strong>{{ grand_total | usd}}</strong></td>
+        </tr>
+    </tfoot>
+</table>
+{% endblock %}

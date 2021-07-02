@@ -42,12 +42,21 @@ db = SQL("sqlite:///finance.db")
 if not os.environ.get("API_KEY"):
     raise RuntimeError("API_KEY not set")
 
-
+#Add comments
 @app.route("/")
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+
+    holdings = db.execute("SELECT symbol,name,SUM(shares),price,SUM(total) FROM purchases GROUP BY symbol HAVING id = ?",session["user_id"])
+
+    cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
+
+    grand_total = cash
+    for stock in holdings:
+        grand_total += stock["SUM(total)"]
+
+        return render_template("index.html",holdings=holdings,cash=cash,grand_total=grand_total)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -55,33 +64,41 @@ def index():
 def buy():
     """Buy shares of stock"""
 
-    if request.method == "GET":
-        return render_template("buy.html")
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
 
-    symbol = request.form.get("symbol")
-    shares = request.form.get("shares")
+        symbol = request.form.get("symbol")
+        shares = request.form.get("shares")
 
-    if lookup(symbol) == None:
-        return apology("invalid symbol")
+        # Makes sure symbol is valid
+        if lookup(symbol) == None:
+            return apology("invalid symbol")
 
-    price = lookup(symbol)["price"]
+        price = lookup(symbol)["price"]
+        name = lookup(symbol)["name"]
 
-    cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
+        # Queries database to check how much cash the user has
+        cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
 
-    total = float(price) * int(shares)
+        total = float(price) * int(shares)
 
-    if total > cash:
-        return apology("insufficient funds")
+        # Makes sure user has enough cash to buy the stocks
+        if total > cash:
+            return apology("insufficient funds")
 
-    cash -= total
+        # Completes transaction
+        cash -= total
 
-    db.execute("UPDATE users SET cash = ? WHERE id = ?",cash,session["user_id"])
+        # Updates database with new information
+        db.execute("UPDATE users SET cash = ? WHERE id = ?",cash,session["user_id"])
 
-    db.execute("INSERT INTO purchases VALUES (:id, :symbol, :shares, :price, :date)",
-               id=session["user_id"],symbol=symbol,shares=shares,price=price,date=datetime.now())
+        db.execute("INSERT INTO purchases VALUES (:id, :name, :symbol, :shares, :price, :total, :date)",
+                   id=session["user_id"],name=name,symbol=symbol,shares=shares,price=price,total=total,date=datetime.now())
 
+        return redirect("/")
 
-    return redirect("/")
+    # User reached route via GET (as by clicking a link or via redirect)
+    return render_template("buy.html")
 
 
 @app.route("/history")

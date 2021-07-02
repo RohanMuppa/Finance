@@ -6,6 +6,7 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
 
 from helpers import apology, login_required, lookup, usd
 
@@ -53,22 +54,32 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
+
     if request.method == "GET":
         return render_template("buy.html")
 
     symbol = request.form.get("symbol")
     shares = request.form.get("shares")
 
-    if symbol == None:
+    if lookup(symbol) == None:
         return apology("invalid symbol")
-    if shares <= 0:
-        return apology("invalid number of shares")
 
     price = lookup(symbol)["price"]
 
-    cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])
-    for num in range(10000):
-        print(cash)
+    cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
+
+    total = float(price) * int(shares)
+
+    if total > cash:
+        return apology("insufficient funds")
+
+    cash -= total
+
+    db.execute("UPDATE users SET cash = ? WHERE id = ?",cash,session["user_id"])
+
+    db.execute("INSERT INTO purchases VALUES (:id, :symbol, :shares, :price, :date)",
+               id=session["user_id"],symbol=symbol,shares=shares,price=price,date=datetime.now())
+
 
     return redirect("/")
 

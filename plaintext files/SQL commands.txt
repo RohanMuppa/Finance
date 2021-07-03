@@ -1,3 +1,5 @@
+sqlite3 finance.db
+
 CREATE TABLE users
 (id INTEGER,
 username TEXT NOT NULL,
@@ -16,3 +18,11 @@ price NUMERIC NOT NULL,
 total NUMERIC NOT NULL,
 date NUMERIC NOT NULL,
 FOREIGN KEY (id) REFERENCES users(id));
+
+
+
+
+cd MyPages
+sqlite3 finance.db
+SELECT * FROM users;
+SELECT * FROM purchases;

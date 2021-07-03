@@ -42,21 +42,24 @@ db = SQL("sqlite:///finance.db")
 if not os.environ.get("API_KEY"):
     raise RuntimeError("API_KEY not set")
 
-#Add comments
+
 @app.route("/")
 @login_required
 def index():
     """Show portfolio of stocks"""
 
+    # Queries database for purchase history
     holdings = db.execute("SELECT symbol,name,SUM(shares),price,SUM(total) FROM purchases GROUP BY symbol HAVING id = ?",session["user_id"])
 
+    # Queries database for user cash balance
     cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
 
+    # Adds cash and stock to come to come to grand_total
     grand_total = cash
     for stock in holdings:
         grand_total += stock["SUM(total)"]
 
-        return render_template("index.html",holdings=holdings,cash=cash,grand_total=grand_total)
+    return render_template("index.html",holdings=holdings,cash=cash,grand_total=grand_total)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -200,7 +203,7 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    return render_template("sell.html")
 
 
 def errorhandler(e):

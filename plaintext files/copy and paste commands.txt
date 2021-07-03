@@ -1,10 +1,5 @@
 RohanMuppa
 
-cd MyPages
-sqlite3 finance.db
-SELECT * FROM users;
-SELECT * FROM purchases;
-
 // Flask won't stay active once you refresh it so make sure to use the debugger while using Flask to combat this
 cd MyPages
 debug50 application.py

@@ -9,14 +9,16 @@ PRIMARY KEY(id));
 CREATE UNIQUE INDEX username ON users (username);
 
 
-CREATE TABLE purchases
+CREATE TABLE transactions
 (id INTEGER,
+transactionsID INTEGER,
 name TEXT NOT NULL,
 symbol TEXT NOT NULL,
 shares NUMERIC NOT NULL,
 price NUMERIC NOT NULL,
 total NUMERIC NOT NULL,
 date NUMERIC NOT NULL,
+PRIMARY KEY(transactionsID)
 FOREIGN KEY (id) REFERENCES users(id));
 
 
@@ -25,4 +27,4 @@ FOREIGN KEY (id) REFERENCES users(id));
 cd MyPages
 sqlite3 finance.db
 SELECT * FROM users;
-SELECT * FROM purchases;
+SELECT * FROM transactions;

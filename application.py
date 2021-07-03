@@ -49,7 +49,7 @@ def index():
     """Show portfolio of stocks"""
 
     # Queries database for purchase history
-    holdings = db.execute("SELECT symbol,name,SUM(shares),price,SUM(total) FROM purchases GROUP BY symbol HAVING id = ?",session["user_id"])
+    holdings = db.execute("SELECT symbol,name,SUM(shares),price,SUM(total) FROM transactions GROUP BY symbol HAVING id = ?",session["user_id"])
 
     # Queries database for user cash balance
     cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
@@ -95,7 +95,7 @@ def buy():
         # Updates database with new information
         db.execute("UPDATE users SET cash = ? WHERE id = ?",cash,session["user_id"])
 
-        db.execute("INSERT INTO purchases VALUES (:id, :name, :symbol, :shares, :price, :total, :date)",
+        db.execute("INSERT INTO transactions (id, name, symbol, shares, price, total, date) VALUES (:id, :name, :symbol, :shares, :price, :total, :date)",
                    id=session["user_id"],name=name,symbol=symbol,shares=shares,price=price,total=total,date=datetime.now())
 
         return redirect("/")
@@ -203,8 +203,45 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return render_template("sell.html")
 
+    # User reached route via GET (as by clicking a link or via redirect)
+    symbols = []
+    symbols_query = db.execute("SELECT DISTINCT(symbol) FROM transactions WHERE id = ?;",session["user_id"])
+
+    # Loops through symbols to list on drop down
+    for symbol in symbols_query:
+        symbols.append(symbol["symbol"])
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        symbol = request.form.get("symbol")
+        sell_shares = int(request.form.get("shares"))
+        price = lookup(symbol)["price"]
+        total = price * sell_shares
+        cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
+
+        # Amount of shares available to sell
+        maximum = db.execute("SELECT SUM(shares) FROM transactions WHERE symbol = ? AND id = ?;",symbol,session["user_id"])[0]["SUM(shares)"]
+
+        # User doesn't have enough shares of symbol to complete the transaction
+        if sell_shares > maximum:
+            return apology("You do not have enough shares")
+
+        name = lookup(symbol)["name"]
+
+        # Update table
+        db.execute("INSERT INTO transactions (id,name,symbol,shares,price,total,date) VALUES (:id,:name,:symbol,:shares,:price,:total,:date);",
+                    id=session["user_id"],name=name,symbol=symbol,shares=sell_shares*-1,price=price,total=total*-1,date=datetime.now())
+
+        # Update cash balance and add it to table
+        cash += total
+        db.execute("UPDATE users SET cash = ? WHERE id = ?",cash,session["user_id"])
+
+        # Redirect to index
+        return redirect("/")
+
+    # Renders sell.html template
+    return render_template("sell.html",symbols=symbols)
 
 def errorhandler(e):
     """Handle error"""

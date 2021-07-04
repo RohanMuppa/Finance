@@ -5,7 +5,7 @@ Finance is a web project created as an assignment for week 9 of Harvard CS50 by 
 
 Once you register and log yourself in there will be 5 main sections:
 
-* **Index (default)** is the default route that is opened up once you log in. Index will show to you all the stocks that you own along with some details about it. Index also provides you with your current cash balance and your combined net worth.
+* **Portfolio** is the default route that is opened up once you log in. Portfolio will show to you all the stocks that you own along with some details about it. Portfolio also provides you with your current cash balance and your combined net worth.
 * **Quote** allows you to search up the current value of a stock by entering it's ticker into the search box then pressing search.
 * **Buy** allows you to buy your desired stocks. Enter the stock ticker and the amount of shares you want to buy then the transaction will proceed and your information will be updated in the SQL database. An error will occur if you cannot afford that many shares or if you enter an invalid stock ticker.
 * **Sell** allows you to sell any shares of a stock that you own. Select the stock then enter the number of shares you would like to sell. An error will occur if you choose to sell more shares than you currently own.

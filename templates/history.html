@@ -19,14 +19,14 @@
         {% for transaction in transactions %}
             {% set total = transaction.shares * transaction.price %}
             <tr>
-                <td>{{ transaction.symbol.upper() }}</td>
+                <td><strong>{{ transaction.symbol.upper() }}</strong></td>
                 <td>{{ transaction.shares }}</td>
                 <td>{{ transaction.price | usd }}</td>
             {% if total < 0 %}
                 {% set total = total *-1 %}
-                <td>+{{ total | usd }}</td> <!-- Changes the total to show if its adding or subtracting from cash balance  -->
+                <td class="text-success">+{{ total | usd }}</td> <!-- Changes the total to show if its adding or subtracting from cash balance  -->
             {% else %}
-                <td>-{{ total | usd}}</td>
+                <td class="text-danger">-{{ total | usd}}</td>
             {% endif %}
                 <td>{{ transaction.date }}</td>
             </tr>

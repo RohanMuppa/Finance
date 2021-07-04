@@ -54,18 +54,26 @@ def index():
     """Show portfolio of stocks"""
 
     # Queries database for purchase history
-    holdings = db.execute("SELECT symbol,name,SUM(shares),price,SUM(total) FROM transactions GROUP BY symbol HAVING id = ?",session["user_id"])
+    holdings = db.execute("SELECT symbol, SUM(shares) FROM transactions GROUP BY symbol HAVING id = ?",session["user_id"])
 
     # Queries database for user cash balance
     cash = db.execute("SELECT cash FROM users WHERE id = ?",session["user_id"])[0]["cash"]
 
     # Adds cash and stock to come to come to grand_total
     grand_total = cash
+
+    # Iterate over the holdings
     for stock in holdings:
-        grand_total += stock["SUM(total)"]
+        symbol = stock["symbol"]
+        shares = stock["SUM(shares)"]
+        name = lookup(symbol)["name"]
+        price = lookup(symbol)["price"]
+        stock["name"] = name
+        stock["price"] = usd(price)
+        stock["total"] = price*shares
+        grand_total += stock["total"]
 
-    return render_template("index.html",holdings=holdings,cash=cash,grand_total=grand_total)
-
+    return render_template("index.html", holdings=holdings, cash=usd(cash), grand_total=usd(grand_total))
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
@@ -113,7 +121,9 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    transactions = db.execute("SELECT symbol,shares,price,date FROM transactions;")
+    transactions = db.execute("SELECT symbol,shares,date FROM transactions;")
+    for transaction in transactions:
+        transaction["price"] = lookup(transaction["symbol"])["price"]
     return render_template("history.html",transactions=transactions)
 
 
@@ -169,6 +179,8 @@ def quote():
 
     # Looks up stock information
     retrieve = lookup(request.form.get("symbol"))
+    if retrieve == None:
+        return apology("invalid symbol")
 
     # Send data to HTML page to show the stock information to the user
     return render_template("quoted.html",name=retrieve["name"],symbol=retrieve["symbol"],price=retrieve["price"])

@@ -16,3 +16,10 @@ transaction; and the time of transaction in UTC (Coordinated Universal Time) wil
 * **Rohan Muppa** opens up a new page once clicked giving you more information about the website and it's functionality.
 
 # Usage
+Finance can be accessed and ran either **locally**, on your own computer, or **online**, hosted by a web server.
+### Online
+1. To access the application online open `INSERT LNK` in a new browser tab.
+### Locally
+1. First, running the application locally requires you to change directory or `cd` into your desired directory using the terminal then clone this repository with `INSERT HERE` to download the repository locally.
+1. After that install Python using the [Python documentation](https://docs.python.org/3/using/index.html) as an installation guide. 
+1. Finally, read the [Flask documentation](https://flask.palletsprojects.com/en/2.0.x/installation/#) to install and run Flask, as well as, optionally learning how it works.

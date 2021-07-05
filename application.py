@@ -36,7 +36,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL(os.getenv("postgres://dbkyqgsfhzvxtx:9969b032df90b45478ccfabf07b5ba02e42496637ed533ecb1438c64d06477f4@ec2-34-193-112-164.compute-1.amazonaws.com:5432/d87v2eo9ci6v2g"))
+db = SQL(os.getenv("DATABASE_URL"))
 
 # Make sure API key is set
 if not os.environ.get("API_KEY"):
@@ -56,7 +56,8 @@ def index():
     """Show portfolio of stocks"""
 
     # Queries database for purchase history
-    holdings = db.execute("SELECT symbol, SUM(shares) FROM transactions GROUP BY symbol HAVING id = ?", session["user_id"]).fetchall()
+    holdings = db.execute("SELECT symbol, SUM(shares) FROM transactions GROUP BY symbol HAVING id = ?",
+                          session["user_id"]).fetchall()
 
     # Queries database for user cash balance
     cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"]).fetchall()[0]["cash"]

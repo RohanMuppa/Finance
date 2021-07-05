@@ -51,7 +51,7 @@ def rohanmuppa():
     return render_template("rohanmuppa.html")
 
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
     """Show portfolio of stocks"""
@@ -122,7 +122,7 @@ def buy():
     return render_template("buy.html")
 
 
-@app.route("/history")
+@app.route("/history", methods=["GET", "POST"])
 @login_required
 def history():
     """Show history of transactions"""
@@ -160,7 +160,7 @@ def login():
         return render_template("login.html")
 
 
-@app.route("/logout")
+@app.route("/logout", methods=["GET", "POST"])
 def logout():
     """Log user out"""
 

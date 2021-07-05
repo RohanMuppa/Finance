@@ -16,6 +16,9 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+# Ensure db.execute can be used
+app.config["SESSION_FILE_DIR"] = mkdtemp()
+
 # Ensure responses aren't cached
 
 
@@ -58,10 +61,10 @@ def index():
 
     # Queries database for purchase history
     holdings = db.execute("SELECT symbol, SUM(shares) FROM transactions GROUP BY symbol HAVING id = ?",
-                          session["user_id"]).fetchone()
+                          session["user_id"])
 
     # Queries database for user cash balance
-    cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"]).fetchone()[0]["cash"]
+    cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
 
     # Adds cash and stock to come to come to grand_total
     grand_total = cash
@@ -99,7 +102,7 @@ def buy():
         name = lookup(symbol)["name"]
 
         # Queries database to check how much cash the user has
-        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"]).fetchone()[0]["cash"]
+        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
 
         total = float(price) * int(shares)
 
@@ -111,10 +114,10 @@ def buy():
         cash -= total
 
         # Updates database with new information
-        db.execute("UPDATE users SET cash = ? WHERE id = ?", cash, session["user_id"]).fetchone()
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", cash, session["user_id"])
 
         db.execute("INSERT INTO transactions (id, name, symbol, shares, price, total, date) VALUES (:id, :name, :symbol, :shares, :price, :total, :date)",
-                   id=session["user_id"], name=name, symbol=symbol, shares=shares, price=price, total=total, date=datetime.now()).fetchone()
+                   id=session["user_id"], name=name, symbol=symbol, shares=shares, price=price, total=total, date=datetime.now())
 
         return redirect("/")
 
@@ -126,7 +129,7 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    transactions = db.execute("SELECT symbol,shares,date FROM transactions;").fetchone()
+    transactions = db.execute("SELECT symbol,shares,date FROM transactions;")
     for transaction in transactions:
         transaction["price"] = lookup(transaction["symbol"])["price"]
     return render_template("history.html", transactions=transactions)
@@ -143,7 +146,7 @@ def login():
     if request.method == "POST":
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username")).fetchone()
+        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
@@ -209,7 +212,7 @@ def register():
         # Trys to insert the new user data
         try:
             insert = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
-                                username=name, hash=hash_pass).fetchone()
+                                username=name, hash=hash_pass)
         # If insert fails it outputs "username has already been taken"
         except:
             return apology("username has already been taken", 403)
@@ -228,7 +231,7 @@ def sell():
 
     # User reached route via GET (as by clicking a link or via redirect)
     symbols = []
-    symbols_query = db.execute("SELECT DISTINCT(symbol) FROM transactions WHERE id = ?;", session["user_id"]).fetchone()
+    symbols_query = db.execute("SELECT DISTINCT(symbol) FROM transactions WHERE id = ?;", session["user_id"])
 
     # Loops through symbols to list on drop down
     for symbol in symbols_query:
@@ -240,11 +243,11 @@ def sell():
         sell_shares = int(request.form.get("shares"))
         price = lookup(symbol)["price"]
         total = price * sell_shares
-        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"]).fetchone()[0]["cash"]
+        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
 
         # Amount of shares available to sell
         maximum = db.execute("SELECT SUM(shares) FROM transactions WHERE symbol = ? AND id = ?;",
-                             symbol, session["user_id"]).fetchone()[0]["SUM(shares)"]
+                             symbol, session["user_id"])[0]["SUM(shares)"]
 
         # User doesn't have enough shares of symbol to complete the transaction
         if sell_shares > maximum:
@@ -254,11 +257,11 @@ def sell():
 
         # Update table
         db.execute("INSERT INTO transactions (id,name,symbol,shares,price,total,date) VALUES (:id,:name,:symbol,:shares,:price,:total,:date);",
-                   id=session["user_id"], name=name, symbol=symbol, shares=sell_shares*-1, price=price, total=total*-1, date=datetime.now()).fetchone()
+                   id=session["user_id"], name=name, symbol=symbol, shares=sell_shares*-1, price=price, total=total*-1, date=datetime.now())
 
         # Update cash balance and add it to table
         cash += total
-        db.execute("UPDATE users SET cash = ? WHERE id = ?", cash, session["user_id"]).fetchone()
+        db.execute("UPDATE users SET cash = ? WHERE id = ?", cash, session["user_id"])
 
         # Redirect to index
         return redirect("/")

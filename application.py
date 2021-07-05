@@ -37,7 +37,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("postgresql://dbkyqgsfhzvxtx:9969b032df90b45478ccfabf07b5ba02e42496637ed533ecb1438c64d06477f4@ec2-34-193-112-164.compute-1.amazonaws.com:5432/d87v2eo9ci6v2g")
+db = SQL("sqlite:///finance.db")
 
 # Make sure API key is set
 if not os.environ.get("API_KEY"):
@@ -208,8 +208,8 @@ def register():
 
         # Trys to insert the new user data
         try:
-            db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
-                      {"username": name, "hash": hash_pass})
+            insert = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
+                                username=name, hash=hash_pass)
         # If insert fails it outputs "username has already been taken"
         except:
             return apology("username has already been taken", 403)

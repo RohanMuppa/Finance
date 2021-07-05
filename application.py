@@ -15,10 +15,10 @@ app = Flask(__name__)
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://dbkyqgsfhzvxtx:9969b032df90b45478ccfabf07b5ba02e42496637ed533ecb1438c64d06477f4@ec2-34-193-112-164.compute-1.amazonaws.com:5432/d87v2eo9ci6v2g"
-
 
 # Ensure responses aren't cached
+
+
 @app.after_request
 def after_request(response):
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
@@ -58,10 +58,10 @@ def index():
 
     # Queries database for purchase history
     holdings = db.execute("SELECT symbol, SUM(shares) FROM transactions GROUP BY symbol HAVING id = ?",
-                          session["user_id"]).fetchall()
+                          session["user_id"])
 
     # Queries database for user cash balance
-    cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"]).fetchall()[0]["cash"]
+    cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
 
     # Adds cash and stock to come to come to grand_total
     grand_total = cash
@@ -99,7 +99,7 @@ def buy():
         name = lookup(symbol)["name"]
 
         # Queries database to check how much cash the user has
-        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"]).fetchall()[0]["cash"]
+        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
 
         total = float(price) * int(shares)
 
@@ -126,7 +126,7 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    transactions = db.execute("SELECT symbol,shares,date FROM transactions;").fetchall()
+    transactions = db.execute("SELECT symbol,shares,date FROM transactions;")
     for transaction in transactions:
         transaction["price"] = lookup(transaction["symbol"])["price"]
     return render_template("history.html", transactions=transactions)
@@ -143,7 +143,7 @@ def login():
     if request.method == "POST":
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username")).fetchall()
+        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
@@ -228,7 +228,7 @@ def sell():
 
     # User reached route via GET (as by clicking a link or via redirect)
     symbols = []
-    symbols_query = db.execute("SELECT DISTINCT(symbol) FROM transactions WHERE id = ?;", session["user_id"]).fetchall()
+    symbols_query = db.execute("SELECT DISTINCT(symbol) FROM transactions WHERE id = ?;", session["user_id"])
 
     # Loops through symbols to list on drop down
     for symbol in symbols_query:
@@ -240,11 +240,11 @@ def sell():
         sell_shares = int(request.form.get("shares"))
         price = lookup(symbol)["price"]
         total = price * sell_shares
-        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"]).fetchall()[0]["cash"]
+        cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
 
         # Amount of shares available to sell
         maximum = db.execute("SELECT SUM(shares) FROM transactions WHERE symbol = ? AND id = ?;",
-                             symbol, session["user_id"]).fetchall()[0]["SUM(shares)"]
+                             symbol, session["user_id"])[0]["SUM(shares)"]
 
         # User doesn't have enough shares of symbol to complete the transaction
         if sell_shares > maximum:

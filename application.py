@@ -15,6 +15,7 @@ app = Flask(__name__)
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgres://dbkyqgsfhzvxtx:9969b032df90b45478ccfabf07b5ba02e42496637ed533ecb1438c64d06477f4@ec2-34-193-112-164.compute-1.amazonaws.com:5432/d87v2eo9ci6v2g"
 
 
 # Ensure responses aren't cached

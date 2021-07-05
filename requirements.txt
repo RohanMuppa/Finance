@@ -1,6 +1,9 @@
+os
 cs50
 Flask
 Flask-Session
 requests
+Werkzeug
+urllib3
 gunicorn
 psycopg2

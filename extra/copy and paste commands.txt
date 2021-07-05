@@ -6,6 +6,7 @@ cd MyPages
 debug50 application.py
 
 cd MyPages
+export API_KEY=pk_a09d64a28bbb44f38da2ba87ba13bf0a
 flask run
 
 for num in range(1000):

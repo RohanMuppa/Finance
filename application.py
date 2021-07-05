@@ -211,8 +211,8 @@ def register():
 
         # Trys to insert the new user data
         try:
-            insert = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
-                                username=name, hash=hash_pass)
+            db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
+                      {"username": name, "hash": hash_pass})
         # If insert fails it outputs "username has already been taken"
         except:
             return apology("username has already been taken", 403)

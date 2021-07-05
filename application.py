@@ -16,9 +16,6 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
-# Ensure db.execute can be used
-app.config["SESSION_FILE_DIR"] = mkdtemp()
-
 # Ensure responses aren't cached
 
 

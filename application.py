@@ -40,8 +40,7 @@ Session(app)
 db = SQL("sqlite:///finance.db")
 
 # Make sure API key is set
-if not os.environ.get("API_KEY"):
-    raise RuntimeError("API_KEY not set")
+API_KEY = "pk_a09d64a28bbb44f38da2ba87ba13bf0a"
 
 
 @app.route("/rohanmuppa")
@@ -279,4 +278,4 @@ for code in default_exceptions:
     app.errorhandler(code)(errorhandler)
 
 if __name__ == "__main__":
-    app.run(debug=False,host='0.0.0.0')
+    app.run()

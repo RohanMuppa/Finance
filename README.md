@@ -19,6 +19,7 @@ transaction; and the time of transaction in UTC (Coordinated Universal Time) wil
 Finance can be accessed and ran either **locally**, on your own computer, or **online**, hosted by a web server.
 ### Online
 1. To access the application online open `https://rohan-finance.herokuapp.com` in a new browser tab.
+    * Sometimes the heroku app has glitches and bugs, so if that happens message me and I'll open up a Flask server. (If you want, you can do it yourself via the instructions below)
 ### Locally
 1. First, running the application locally requires you to change directory or `cd` into your desired directory using the terminal then clone this repository with `git clone https://github.com/RohanMuppa/Finance.git` to download the repository locally.
 1. After that install Python using the [Python documentation](https://docs.python.org/3/using/index.html) as an installation guide.

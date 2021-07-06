@@ -1,7 +1,7 @@
 ![Image of stock portfolio](/static/finance.jpg)
 
 # Finance
-Finance is a web project created as an assignment for week 9 of Harvard CS50 by Rohan Muppa on the week of July 3rd 2021 (7/3/21). The application was made using Python, HTML (w/ Jinja), CSS, and Javascript using the FLask web framework. It uses the IEX API to get the stock prices in real time and a SQL database to store user and transaction information.
+Finance is a web project created as an assignment for week 9 of Harvard CS50 by Rohan Muppa on the week of July 3rd 2021 (7/3/21). The application was made using Python, HTML (w/ Jinja), CSS, and Javascript using the Flask web framework. It uses the IEX API to get the stock prices in real time and a SQL database to store user and transaction information.
 
 Once you register and log yourself in there will be 5 main sections:
 

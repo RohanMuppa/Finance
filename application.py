@@ -37,18 +37,33 @@ Session(app)
 # Configure CS50 Library to use SQLite database
 db = SQL("sqlite:///finance.db")
 
-# Make sure API key is set
+# Make sure API key is set (public key)
 API_KEY = "pk_a09d64a28bbb44f38da2ba87ba13bf0a"
 
-
-@app.route("/rohanmuppa")
+@app.route("/admins")
 @login_required
-def rohanmuppa():
-    """Send user information about website and it's creator"""
-    return render_template("rohanmuppa.html")
+def admins():
+    """Admin page that alters the app"""
+    rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        # Ensure username exists and password is correct
+        if admin != 1:
+            return apology("User is not an admin", 403)
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    return render_template("admin.html")
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/information")
+@login_required
+def information():
+    """Send user information about the website and how to use it"""
+    return render_template("info.html")
+
+
+@app.route("/")
 @login_required
 def index():
     """Show portfolio of stocks"""
@@ -119,7 +134,7 @@ def buy():
     return render_template("buy.html")
 
 
-@app.route("/history", methods=["GET", "POST"])
+@app.route("/history")
 @login_required
 def history():
     """Show history of transactions"""
@@ -153,11 +168,10 @@ def login():
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
-    else:
-        return render_template("login.html")
+    return render_template("login.html")
 
 
-@app.route("/logout", methods=["GET", "POST"])
+@app.route("/logout")
 def logout():
     """Log user out"""
 
@@ -205,8 +219,16 @@ def register():
 
         # Trys to insert the new user data
         try:
-            insert = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)",
-                                username=name, hash=hash_pass)
+            # Checks if Admin code correct
+            user_type = request.form.get("user_type")
+            admin = 0 # 0 = false, 1 = true
+            if user_type == "admin":
+                if request.form.get("admin_code") != os.environ.get("ADMIN_CODE"):
+                    return apology("invalid admin code")
+                admin = 1
+
+            insert = db.execute("INSERT INTO users (username, hash, admin) VALUES (:username, :hash, :admin)",
+                                username=name, hash=hash_pass, admin=admin)
         # If insert fails it outputs "username has already been taken"
         except:
             return apology("username has already been taken", 403)

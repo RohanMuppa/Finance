@@ -223,11 +223,13 @@ def register():
             user_type = request.form.get("user_type")
             admin = 0 # 0 = false, 1 = true
             if user_type == "admin":
-                if request.form.get("admin_code") != os.environ.get("ADMIN_CODE"):
-                    return apology("invalid admin code")
+                if request.form.get("admin_code") != os.environ['ADMIN_CODE']:
+                    for x in range(100):
+                        print(os.environ['ADMIN_CODE'])
+                    return apology('asda')
                 admin = 1
 
-            insert = db.execute("INSERT INTO users (username, hash, admin) VALUES (:username, :hash, :admin)",
+            db.execute("INSERT INTO users (username, hash, admin) VALUES (:username, :hash)",
                                 username=name, hash=hash_pass, admin=admin)
         # If insert fails it outputs "username has already been taken"
         except:

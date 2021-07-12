@@ -16,6 +16,7 @@ app = Flask(__name__)
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+
 # Ensure responses aren't cached
 @app.after_request
 def after_request(response):
@@ -38,23 +39,42 @@ Session(app)
 db = SQL("sqlite:///finance.db")
 
 # Make sure API key is set (public key)
-API_KEY = "pk_a09d64a28bbb44f38da2ba87ba13bf0a"
+API_KEY = os.environ['API_KEY']
 
-@app.route("/admins")
-@login_required
-def admins():
-    """Admin page that alters the app"""
-    rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+# 0 if admin logged in 1 otherwise
+admin_logged = False
+@app.route("/admins/login",methods=["GET", "POST"])
+def admins_login():
+    """Admin page that gives control to admins to alter the app"""
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
+
+        query = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+
+        # User not found
+        if len(query) != 1 or not check_password_hash(query[0]["hash"], request.form.get("password")):
+            return apology("invalid username and/or password", 403)
+
         # Ensure username exists and password is correct
-        if admin != 1:
+        if query[0]["admin"] != 1:
             return apology("User is not an admin", 403)
 
-    # User reached route via GET (as by clicking a link or via redirect)
-    return render_template("admin.html")
+        # Admin is logged in
+        global admin_logged
+        admin_logged = True
+        return redirect("/admins")
 
+    # User reached route via GET (as by clicking a link or via redirect)
+    return render_template("admin_login.html")
+
+@app.route("/admins")
+def admins():
+    if admin_logged == False:
+        return redirect("/admins/login")
+
+    # User reached route via GET (as by clicking a link or via redirect)
+    return render_template("admins.html")
 
 @app.route("/information")
 @login_required
@@ -86,7 +106,7 @@ def index():
         price = lookup(symbol)["price"]
         stock["name"] = name
         stock["price"] = usd(price)
-        stock["total"] = price*shares
+        stock["total"] = price * shares
         grand_total += stock["total"]
 
     return render_template("index.html", holdings=holdings, cash=usd(cash), grand_total=usd(grand_total))
@@ -125,8 +145,10 @@ def buy():
         # Updates database with new information
         db.execute("UPDATE users SET cash = ? WHERE id = ?", cash, session["user_id"])
 
-        db.execute("INSERT INTO transactions (id, name, symbol, shares, price, total, date) VALUES (:id, :name, :symbol, :shares, :price, :total, :date)",
-                   id=session["user_id"], name=name, symbol=symbol, shares=shares, price=price, total=total, date=datetime.now())
+        db.execute(
+            "INSERT INTO transactions (id, name, symbol, shares, price, total, date) VALUES (:id, :name, :symbol, :shares, :price, :total, :date)",
+            id=session["user_id"], name=name, symbol=symbol, shares=shares, price=price, total=total,
+            date=datetime.now())
 
         return redirect("/")
 
@@ -221,16 +243,14 @@ def register():
         try:
             # Checks if Admin code correct
             user_type = request.form.get("user_type")
-            admin = 0 # 0 = false, 1 = true
+            admin = 0  # 0 = false, 1 = true
             if user_type == "admin":
                 if request.form.get("admin_code") != os.environ['ADMIN_CODE']:
-                    for x in range(100):
-                        print(os.environ['ADMIN_CODE'])
-                    return apology('asda')
+                    return apology('invalid admin code')
                 admin = 1
 
-            db.execute("INSERT INTO users (username, hash, admin) VALUES (:username, :hash)",
-                                username=name, hash=hash_pass, admin=admin)
+            db.execute("INSERT INTO users (username, hash, admin) VALUES (:username, :hash, :admin)",
+                       username=name, hash=hash_pass, admin=admin)
         # If insert fails it outputs "username has already been taken"
         except:
             return apology("username has already been taken", 403)
@@ -274,8 +294,10 @@ def sell():
         name = lookup(symbol)["name"]
 
         # Update table
-        db.execute("INSERT INTO transactions (id,name,symbol,shares,price,total,date) VALUES (:id,:name,:symbol,:shares,:price,:total,:date);",
-                   id=session["user_id"], name=name, symbol=symbol, shares=sell_shares*-1, price=price, total=total*-1, date=datetime.now())
+        db.execute(
+            "INSERT INTO transactions (id,name,symbol,shares,price,total,date) VALUES (:id,:name,:symbol,:shares,:price,:total,:date);",
+            id=session["user_id"], name=name, symbol=symbol, shares=sell_shares * -1, price=price, total=total * -1,
+            date=datetime.now())
 
         # Update cash balance and add it to table
         cash += total

@@ -23,4 +23,4 @@ Finance can be accessed and ran either **locally**, on your own computer, or **o
 ### Locally
 1. First, running the application locally requires you to change directory or `cd` into your desired directory using the terminal then clone this repository with `git clone https://github.com/RohanMuppa/Finance.git` to download the repository locally.
 1. After that install Python using the [Python documentation](https://docs.python.org/3/using/index.html) as an installation guide.
-1. Finally, read the [Flask documentation](https://flask.palletsprojects.com/en/2.0.x/installation/#) to install and run Flask, as well as, optionally learning how it works.
+1. Finally, read the [Flask documentation](https://flask.palletsprojects.com/en/2.0.x/installation/#) to install and run Flask, optionally, learning how it works.

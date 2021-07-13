@@ -52,13 +52,9 @@ def admins_login():
 
         query = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
 
-        # User not found
-        if len(query) != 1 or not check_password_hash(query[0]["hash"], request.form.get("password")):
+        # Admin not found
+        if len(query) != 1 or not check_password_hash(query[0]["hash"], request.form.get("password")) or query[0]["admin"] != 1:
             return apology("invalid username and/or password", 403)
-
-        # Ensure username exists and password is correct
-        if query[0]["admin"] != 1:
-            return apology("User is not an admin", 403)
 
         # Admin is logged in
         global admin_logged
@@ -68,13 +64,24 @@ def admins_login():
     # User reached route via GET (as by clicking a link or via redirect)
     return render_template("admin_login.html")
 
-@app.route("/admins")
+@app.route("/admins",methods=["GET", "POST"])
 def admins():
     if admin_logged == False:
         return redirect("/admins/login")
 
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        username = request.form.get("users")
+        cash = db.execute("SELECT cash FROM users WHERE username = ?",username)[0]["cash"] + int(request.form.get("amount"))
+
+        # Admin selects adjust balance
+        if request.form.get("action") == "adjust_balance":
+            db.execute("UPDATE users SET cash = ? WHERE username = ?;",cash,username)
+
+    users = db.execute("SELECT username FROM users;")
+
     # User reached route via GET (as by clicking a link or via redirect)
-    return render_template("admins.html")
+    return render_template("admins.html",users=users)
 
 @app.route("/information")
 @login_required
@@ -89,7 +96,7 @@ def index():
     """Show portfolio of stocks"""
 
     # Queries database for purchase history
-    holdings = db.execute("SELECT symbol, SUM(shares) FROM transactions GROUP BY symbol HAVING id = ?",
+    holdings = db.execute("SELECT * FROM transactions GROUP BY symbol HAVING id = ?",
                           session["user_id"])
 
     # Queries database for user cash balance
@@ -160,7 +167,7 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    transactions = db.execute("SELECT symbol,shares,date FROM transactions;")
+    transactions = db.execute("SELECT symbol,shares,date FROM transactions WHERE id = ?;",session["user_id"])
     for transaction in transactions:
         transaction["price"] = lookup(transaction["symbol"])["price"]
     return render_template("history.html", transactions=transactions)
@@ -196,8 +203,10 @@ def login():
 @app.route("/logout")
 def logout():
     """Log user out"""
+    global admin_logged
 
-    # Forget any user_id
+    # Forget any user_id and admin log in
+    admin_logged = False
     session.clear()
 
     # Redirect user to login form

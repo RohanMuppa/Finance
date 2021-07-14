@@ -171,17 +171,17 @@ def history():
     transactions = db.execute("SELECT symbol,shares,date FROM transactions WHERE id = ?;",session["user_id"])
     for transaction in transactions:
         transaction["price"] = lookup(transaction["symbol"])["price"]
+
     return render_template("history.html", transactions=transactions)
 
 @app.route("/leaderboard")
 @login_required
 def leaderboard():
     """Shows leaderboard of top users"""
-    leaderboard = db.execute("SELECT username,cash,grand_total FROM users LIMIT 10;")
-
+    leaderboard = db.execute("SELECT username,cash,grand_total FROM users ORDER BY grand_total DESC LIMIT 10;")
     for user in leaderboard:
-        user["cash"] = usd(user["cash"])
-        user["grand_total"] = usd(float(user["grand_total"]))
+        user["cash"] = user["cash"]
+        user["grand_total"] = user["grand_total"]
 
     return render_template("leaderboard.html",leaderboard=leaderboard)
 

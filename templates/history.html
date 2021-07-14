@@ -11,7 +11,8 @@
             <th>Symbol</th>
             <th>Shares</th>
             <th>Price</th>
-            <th>Net</th>
+            <th>Type</th>
+            <th>Total</th>
             <th>Transacted</th>
         </tr>
     </thead>
@@ -23,9 +24,11 @@
                 <td>{{ transaction.shares }}</td>
                 <td>{{ transaction.price | usd }}</td>
             {% if total < 0 %}
+                <td>SELL</td>
                 {% set total = total *-1 %}
                 <td class="text-success">+{{ total | usd }}</td> <!-- Changes the total to show if its adding or subtracting from cash balance  -->
             {% else %}
+                <td>BUY</td>
                 <td class="text-danger">-{{ total | usd}}</td>
             {% endif %}
                 <td>{{ transaction.date }}</td>

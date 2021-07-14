@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    History
+{% endblock %}
+
+{% block main %}
+    <table class="table table-striped">
+        <thead id="leaderboard_head">
+            <tr>
+                <th>Rank</th>
+                <th>User</th>
+                <th>Cash</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboard_body">
+            {% for user in leaderboard %}
+                <tr>
+                    <td><strong>{{ loop.index }}</strong></td>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.cash }}</td>
+                    <td>{{ user.grand_total}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -96,8 +96,8 @@ def index():
     """Show portfolio of stocks"""
 
     # Queries database for purchase history
-    holdings = db.execute("SELECT * FROM transactions GROUP BY symbol HAVING id = ?",
-                          session["user_id"])
+    holdings = db.execute("SELECT symbol,SUM(shares) FROM transactions GROUP by id,symbol HAVING id = :id;",
+                          id=session["user_id"])
 
     # Queries database for user cash balance
     cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])[0]["cash"]
@@ -116,6 +116,7 @@ def index():
         stock["total"] = price * shares
         grand_total += stock["total"]
 
+    db.execute("UPDATE users SET grand_total = ? WHERE id = ?;",grand_total,session["user_id"])
     return render_template("index.html", holdings=holdings, cash=usd(cash), grand_total=usd(grand_total))
 
 
@@ -172,6 +173,17 @@ def history():
         transaction["price"] = lookup(transaction["symbol"])["price"]
     return render_template("history.html", transactions=transactions)
 
+@app.route("/leaderboard")
+@login_required
+def leaderboard():
+    """Shows leaderboard of top users"""
+    leaderboard = db.execute("SELECT username,cash,grand_total FROM users LIMIT 10;")
+
+    for user in leaderboard:
+        user["cash"] = usd(user["cash"])
+        user["grand_total"] = usd(float(user["grand_total"]))
+
+    return render_template("leaderboard.html",leaderboard=leaderboard)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -184,7 +196,7 @@ def login():
     if request.method == "POST":
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        rows = db.execute("SELECT hash,id FROM users WHERE username = ?", request.form.get("username"))
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
